@@ -26,17 +26,17 @@ def fetchWordData(inputWord):
     r = requests.get(url)
     soup = BeautifulSoup(r.content, 'html.parser')
 
-    definitionCount = len(soup.select("div.mask a.pos-tab"))
-    defns = []
-
     # part of speech and meaning
-    posTags = soup.select("div.mask a.pos-tab")
+    posTags = soup.select(".e126ceh80")
     pos = [[z.text for z in x.select('em')][0] for x in posTags]
     meaning = [[z.text for z in x.select('strong')][0] for x in posTags]
 
+    definitionCount = len(posTags)
+    defns = []
+
     for defnNum in range(0, definitionCount):
-        wordPath = 'div#synonyms-{} li a'
-        data = soup.select(wordPath.format(defnNum))
+        wordPath = '.css-1s00u8u'
+        data = soup.select(wordPath)
 
         curr_def = {
             'partOfSpeech': pos[defnNum],
@@ -45,32 +45,37 @@ def fetchWordData(inputWord):
             'ant': []
         }
 
-        for x in data:
-            # tuple key is (word, relevance, length, complexity, form)
-            entry = ()
-            category = int(btw(x.attrs['data-category'], 'relevant-', '"'))
+        if defnNum == 0:
+          for x in data: 
+              # tuple key is (word, relevance, length, complexity, form)
+              entry = ()
 
-            if category > 0:
-                # the -4 is to remove the star text. I figured string manip.
-                # would be faster than doing another select on the lower span.
-                # I may have to change this in the future if they remove the
-                # star thing. It works with Unicode... even though str()
-                # doesnt.
-                c = 'syn'
-                entry += (x.text[:-4],)
-            else:
-                # antonyms don't have the star text.
+              category = x.select('.e1s2bo4t1')
+              if len(category) != 0:   # i.e. is it a syn with a hyperlink (most of them)
+
+                entry += (str(category[0].text),)
+
+                cat = category[0].get('class')
+                relevance = 0
                 c = 'ant'
-                entry += (str(x.text),)
+                if ('css-1hn7aky' in cat or 'css-1usnxsl' in cat):
+                  relevance = 3
+                  if ('css-1hn7aky' in cat):
+                    c = 'syn'
+                elif ('css-ebz9vl' in cat or 'css-1sg8uz8' in cat):
+                  relevance = 2
+                  if ('css-ebz9vl' in cat):
+                    c = 'syn'
+                elif ('css-vdoou0' in cat or 'css-t2pzdt' in cat):
+                  relevance = 1
+                  if ('css-vdoou0' in cat):
+                    c = 'syn'
 
-            entry += (abs(category), int(x.attrs['data-length']))
-            entry += (int(x.attrs['data-complexity']),)
-            try:
-                entry += (x.attrs['class'][0],)
-            except:
-                entry += (None,)
+                entry += (relevance, len(str(category[0].text)))
 
-            curr_def[c].append(entry)
+                entry += (None,None)
+
+                curr_def[c].append(entry)
         defns.append(curr_def)
 
     # add origin and examples to the last element so we can .pop() it out later
@@ -236,3 +241,7 @@ class Word:
 
     def examples(self):
         return self.extra['examples']
+
+
+if __name__ == '__main__':
+	word = Word('happy')
