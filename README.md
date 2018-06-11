@@ -1,5 +1,7 @@
 # Thesaurus-API
-**WARNING**: thesaurus.com recently updated their css to randomize the classes and ids of everything as to prevent scraping. I'll get you guys a fix once I'm done with finals.
+**WARNING**: ~~thesaurus.com recently updated their css to randomize the classes and ids of everything as to prevent scraping. I'll get you guys a fix once I'm done with finals.~~ Edit: Alright I fixed it, but I still need to update the README. The code is now very well documented, so you *might* be able to figure out what to do between these two documents... but either way I'll probably update the README tomorrow so hang tight. Good night, my dear child. May we both dream of progress.
+
+----
 
 Greetings, and welcome to the unofficial api for thesaurus.com. It is compatible with Python 2 and 3. A few of these functions were originally written for an [acronym creator](https://github.com/Manwholikespie/backronym), however I figured other people might want to pull data from thesaurus.com.
 
