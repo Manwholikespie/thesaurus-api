@@ -18,6 +18,8 @@ import requests
 from bs4 import BeautifulSoup
 
 # ===========================   GLOBAL CONSTANTS   =============================
+ALL = 'all'
+
 ## form=
 FORM_INFORMAL = 'informal'
 FORM_COMMON =   'common'
@@ -73,13 +75,13 @@ def fetchWordData(inputWord):
             {
                 'meaning' : str,
                 'partOfSpeech' : str,
+                'isVulgar' : bool,
                 'syn' : [Entry(
                                 word=str,
                                 relevance=int,
                                 length=int,
                                 complexity=int,
-                                form=str,
-                                isVulgar=bool
+                                form=str
                         )],
                 'ant' : [... same as 'syn' ...]
             }
@@ -89,15 +91,23 @@ def fetchWordData(inputWord):
     r = requests.get(url)
     soup = BeautifulSoup(r.content, 'html.parser')
 
-    data = soup.select('script')[11].text
-    data = data[22+1:-1] # remove 'window.INITIAL_STATE = ' and ';'
-    data = json.loads(data)
+    try:
+        data = soup.select('script')[12].text
+        data = data[22+1:-1] # remove 'window.INITIAL_STATE = ' and ';'
+        data = json.loads(data)
+    except:
+        # Find the JS block with the most text in it. This is our data.
+        dataIdx = max([(i, len(x.text)) for i, x in enumerate(soup.select('script'))],
+            key=lambda z: z[1])[0] # sort by length of text. Idx is 0th elment.
+        data = soup.select('script')[dataIdx].text
+        data = data[22+1:-1] # remove 'window.INITIAL_STATE = ' and ';'
+        data = json.loads(data)
 
     defns = [] # where we shall store data for each definition tab
 
     # how we will represent an individual synonym/antonym
     Entry = namedtuple('Entry', ['word', 'relevance', 'length',
-                                 'complexity', 'form', 'isVulgar'])
+                                 'complexity', 'form'])
 
     ## Utility functions to process attributes for our entries.
     # a syn/ant's relevance is marked 1-3, where 10 -> 1, 100 -> 3.
@@ -111,6 +121,7 @@ def fetchWordData(inputWord):
         curr_def = {
             'partOfSpeech' : defn.get('pos'),
             'meaning' : defn.get('definition'),
+            'isVulgar' : bool(int(defn.get('isVulgar'))),
             'syn' : [],
             'ant' : []
         }
@@ -142,8 +153,8 @@ def fetchWordData(inputWord):
                 relevance=calc_relevance(abs(int(syn['similarity']))),
                 length=calc_length(len(syn['term'])),
                 complexity=0,
-                form=calc_form(bool(int(syn['isInformal']))),
-                isVulgar=bool(syn['isVulgar'])
+                form=calc_form(bool(int(syn['isInformal'])))
+                # isVulgar=bool(syn['isVulgar']) # *Nested* key is useless.
             )
 
             curr_def['syn'].append(e)
@@ -155,8 +166,8 @@ def fetchWordData(inputWord):
                 relevance=calc_relevance(abs(int(ant['similarity']))),
                 length=calc_length(len(ant['term'])),
                 complexity=0,
-                form=calc_form(bool(int(ant['isInformal']))),
-                isVulgar=bool(ant['isVulgar'])
+                form=calc_form(bool(int(ant['isInformal'])))
+                # isVulgar=bool(ant['isVulgar']) # *Nested* key is useless.
             )
 
             curr_def['ant'].append(e)
@@ -276,8 +287,9 @@ class Word(object):
             the case that common inferred not-informal. Now, however, all words
             are either informal or common.
         isVulgar : bool, optional
-            If `True`, will only return words that are vulgar. If `False`, will
-            filter out vulgar words.
+            Similar to partOfSpeech, if `True`, will blank out non-vulgar
+            definition entries. If `False`, will filter out vulgar definitions.
+            Think of it as having only two different POS's to select from.
 
         Returns
         -------
@@ -357,6 +369,11 @@ class Word(object):
                 filtered_data.append([])
                 continue
             
+            # current defn tab is not of the vulgarity we require. continue.
+            if not compare_entries(defn['isVulgar'], fs.isVulgar):
+                filtered_data.append([])
+                continue
+            
             # holds all the relevant entries for this defn.
             cur_data = []
 
@@ -364,8 +381,7 @@ class Word(object):
                 if (
                     compare_entries(entry.relevance, fs.relevance) and
                     compare_entries(entry.length, fs.length) and
-                    compare_entries(entry.form, fs.form) and
-                    compare_entries(entry.isVulgar, fs.isVulgar)
+                    compare_entries(entry.form, fs.form)
                 ):
                     cur_data.append(entry.word)
             
