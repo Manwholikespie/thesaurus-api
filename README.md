@@ -19,10 +19,10 @@ More information is provided about these functions in the *Getting Started* sect
 Everything in here is licensed under the MIT license. Do with it what you want– make some money. Just know that if you use my code (or even star this repo), and I see that you work at the Betty Crocker Company (or some other equally prestigious venture)— I will most likely write on my resume that you use my code to great satisfaction.  
 
 ## Getting Started
-First, download the program.  
-`$ git clone https://github.com/Manwholikespie/thesaurus-api`  
+You can install the module by doing:  
+`$ pip install thesaurus` 
 
-Then, install its dependencies.  
+If for some reason the dependencies didn't install, you can install them by doing:  
 `$ pip install requests`  
 `$ pip install beautifulsoup4`  
 
@@ -83,6 +83,16 @@ If you used a 0 instead of a 1, you would get the same data as in the first exam
   'whack',
   'duke',
   'exchange blows']]
+```
+
+*Quick Note*: There are a lot of filtering options, and thus a long tutorial for how to use them. Here's a quick list of the available filters. More is explained below...
+
+```python
+relevance=[1,2,3]  
+length=[1,2,3]  
+partOfSpeech= [... see the table. POS_* ...]
+form=['common','informal'] # or th.FORM_COMMON, th.FORM_INFORMAL
+isVulgar=[True, False]
 ```
 
 This is a lot of data, though, and we may not need all of it. Say you want to filter through the first definition for your word and find words that are of relevance 3.
