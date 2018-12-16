@@ -48,7 +48,7 @@ def formatWordUrl(inputWord):
     this is more efficient I think. Let me know if there's a word it doesn't
     work for and I'll change it.
     """
-    url = 'http://www.thesaurus.com/browse/'
+    url = 'https://www.thesaurus.com/browse/'
     url = url + inputWord.strip().lower().replace(' ', '%20')
     return url
 
