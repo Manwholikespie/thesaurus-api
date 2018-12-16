@@ -12,6 +12,9 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Manwholikespie/thesaurus",
+    entry_points={
+        'console_scripts': ['thesaurus-dot-com=thesaurus.cli:main']
+    },
     packages=setuptools.find_packages(),
     install_requires=[
         'requests>=2.13.0',
